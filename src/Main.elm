@@ -1,6 +1,6 @@
 module Main exposing (main)
 
-import Html exposing (Html, div, input, text, ul, li, program)
+import Html exposing (Html, div, h1, h2, input, span, text, ul, li, program)
 import Html.Events exposing (onClick, onInput)
 import Html.Attributes exposing (class, value)
 import Http
@@ -23,10 +23,11 @@ type Message
     | Index
     | Init (Result Http.Error String)
     | RenameButton Id String
+    | ChangeButtonGroup Id String
 
 
 type alias Button =
-    { clicks : List Time, id : Id, text : String }
+    { clicks : List Time, id : Id, text : String, group : String }
 
 
 type alias Model =
@@ -38,7 +39,7 @@ type alias Model =
 
 initialModel : Model
 initialModel =
-    { uid = 2, buttons = [ { clicks = [], id = 1, text = "Button" } ], focus = Nothing }
+    { uid = 2, buttons = [ { clicks = [], id = 1, text = "Button", group = "" } ], focus = Nothing }
 
 
 view : Model -> Html Message
@@ -48,17 +49,25 @@ view model =
             let
                 buttons =
                     List.filter (\b -> b.id == id) model.buttons
+
+                groups =
+                    List.filter (\b -> List.member b.group (List.map (\bg -> bg.group) buttons)) model.buttons
             in
-                div [ class "container" ] <|
+                div [ class "container content" ] <|
                     List.map
                         (\button ->
                             div []
                                 [ Html.button [ onClick Index, class "button" ] [ text "Back" ]
+                                , h1 [ ] [ text button.text ]
+                                , h2 [] [ text button.group ]
+                                , span [ ] [ text "Name" ]
                                 , input [ value button.text, class "input", onInput (RenameButton button.id) ] []
+                                , span [ ] [ text "Group" ]
+                                , input [ value button.group, class "input", onInput (ChangeButtonGroup button.id) ] []
                                 , ul [] <| List.map (\click -> li [] [ text (toString (Date.fromTime click)) ]) button.clicks
                                 ]
                         )
-                        buttons
+                        groups
 
         Nothing ->
             div [ class "container" ]
@@ -95,6 +104,9 @@ update msg model =
         RenameButton id name ->
             ( renameButton model id name, log (RenameButton id name) )
 
+        ChangeButtonGroup id group ->
+            ( changeButtonGroup model id group, log (ChangeButtonGroup id group) )
+
         AddButton ->
             ( addButton model, log AddButton )
 
@@ -126,11 +138,18 @@ renameButton model id newName =
     }
 
 
+changeButtonGroup : Model -> Id -> String -> Model
+changeButtonGroup model id newGroup =
+    { model
+        | buttons = List.map (updateButton id (\b -> { b | group = newGroup })) model.buttons
+    }
+
+
 addButton : Model -> Model
 addButton model =
     { model
         | uid = model.uid + 1
-        , buttons = { clicks = [], id = model.uid, text = "Button " ++ (toString model.uid) } :: model.buttons
+        , buttons = { clicks = [], id = model.uid, text = "Button " ++ (toString model.uid), group = "" } :: model.buttons
     }
 
 
@@ -162,6 +181,15 @@ initLine line model =
                 (Result.map
                     (\id ->
                         renameButton model id (String.dropRight 1 (String.dropLeft 1 name))
+                    )
+                    (String.toInt sid)
+                )
+
+        [ "ChangeButtonGroup", sid, group ] ->
+            Result.withDefault model
+                (Result.map
+                    (\id ->
+                        changeButtonGroup model id (String.dropRight 1 (String.dropLeft 1 group))
                     )
                     (String.toInt sid)
                 )
