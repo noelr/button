@@ -114,13 +114,13 @@ lastClickDiff now button =
             List.head button.clicks
 
         msPerSecond =
-            1000
+            Time.second
 
         msPerMinute =
-            60 * msPerSecond
+            Time.minute
 
         msPerHour =
-            60 * msPerMinute
+            Time.hour
 
         msPerDay =
             24 * msPerHour
@@ -135,18 +135,18 @@ lastClickDiff now button =
             Just click ->
                 let
                     diff =
-                        floor <| now - click
+                        now - click
                 in
                     if diff < msPerMinute then
-                        "Vor " ++ (toString <| diff // msPerSecond) ++ " Sekunden"
+                        "Vor " ++ (toString <| ceiling <| diff / msPerSecond) ++ " Sekunden"
                     else if diff < msPerHour then
-                        "Vor " ++ (toString <| diff // msPerMinute) ++ " Minuten"
+                        "Vor " ++ (toString <| floor <| diff / msPerMinute) ++ " Minuten"
                     else if diff < msPerDay then
-                        "Vor " ++ (toString <| diff // msPerHour) ++ " Stunden"
+                        "Vor " ++ (toString <| floor <| diff / msPerHour) ++ " Stunden"
                     else if diff < msPerWeek then
-                        "Vor " ++ (toString <| diff // msPerDay) ++ " Tagen"
+                        "Vor " ++ (toString <| floor <| diff / msPerDay) ++ " Tagen"
                     else
-                        "Vor " ++ (toString <| diff // msPerWeek) ++ " Wochen"
+                        "Vor " ++ (toString <| floor <| diff / msPerWeek) ++ " Wochen"
 
 
 updateButton : Id -> (Button -> Button) -> Button -> Button
