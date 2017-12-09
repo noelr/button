@@ -72,16 +72,16 @@ view model =
                         groups
 
         Nothing ->
-            div []
-                [ div [ class "tile is-anchor" ] <| List.map (viewButton model.now) model.buttons
+            div [ class "container" ]
+                [ div [ class "columns is-multiline" ] <| List.map (viewButton model.now) model.buttons
                 , Html.button [ onClick AddButton, class "button" ] [ text "New Button" ]
                 ]
 
 
 viewButton : Time -> Button -> Html Message
 viewButton now button =
-    div [ class "tile is-parent" ]
-        [ div [ class "tile is-child box" ]
+    div [ class "column is-4" ]
+        [ div [ class "box" ]
             [ p [ class "title" ] [ text button.text ]
             , p [ class "subtitle" ] [ text (lastClick button) ]
             , p [ class "subtitle" ] [ text (lastClickDiff now button) ]
