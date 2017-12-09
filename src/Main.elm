@@ -14,21 +14,17 @@ type alias Id =
     Int
 
 
-type Page
-    = ToIndex
-    | Focus Id
-    | Index Time
-
-
 type Message
     = Click Id
     | ClickPerformed Id Time
     | AddButton
     | Logged (Result Http.Error String)
-    | Navigate Page
+    | Focus Id
+    | Index
     | Init (Result Http.Error String)
     | RenameButton Id String
     | ChangeButtonGroup Id String
+    | Tick Time
 
 
 type alias Button =
@@ -45,7 +41,7 @@ type alias Model =
 
 initialModel : Model
 initialModel =
-    { uid = 2, buttons = [], focus = Nothing, now = 0 }
+    { uid = 1, buttons = [], focus = Nothing, now = 0 }
 
 
 view : Model -> Html Message
@@ -63,7 +59,7 @@ view model =
                     List.map
                         (\button ->
                             div []
-                                [ Html.button [ onClick (Navigate ToIndex), class "button" ] [ text "Back" ]
+                                [ Html.button [ onClick Index, class "button" ] [ text "Back" ]
                                 , h1 [] [ text button.text ]
                                 , h2 [] [ text button.group ]
                                 , span [] [ text "Name" ]
@@ -91,7 +87,7 @@ viewButton now button =
             , p [ class "subtitle" ] [ text (lastClickDiff now button) ]
             , div [ class "control buttons has-addons" ]
                 [ Html.button [ onClick (Click button.id), class "button" ] [ text (button.text ++ " (" ++ toString (List.length button.clicks) ++ ")") ]
-                , Html.button [ onClick (Navigate (Focus button.id)), class "button is-danger" ] [ text "…" ]
+                , Html.button [ onClick (Focus button.id), class "button is-danger" ] [ text "…" ]
                 ]
             ]
         ]
@@ -164,16 +160,11 @@ updateButton id fn button =
 update : Message -> Model -> ( Model, Cmd Message )
 update msg model =
     case msg of
-        Navigate page ->
-            case page of
-                ToIndex ->
-                    ( model, Task.perform (\t -> Navigate (Index t)) Time.now )
+        Focus id ->
+            ( { model | focus = Just id }, Cmd.none )
 
-                Focus id ->
-                    ( { model | focus = Just id }, Cmd.none )
-
-                Index time ->
-                    ( { model | now = time, focus = Nothing }, Cmd.none )
+        Index ->
+            ( { model | focus = Nothing }, Cmd.none )
 
         Click id ->
             ( model, Task.perform (ClickPerformed id) Time.now )
@@ -203,6 +194,9 @@ update msg model =
 
         Init _ ->
             ( model, Cmd.none )
+
+        Tick time ->
+          ( { model | now = time }, Cmd.none )
 
 
 renameButton : Model -> Id -> String -> Model
@@ -285,12 +279,7 @@ load =
 
 init : ( Model, Cmd Message )
 init =
-    ( initialModel
-    , Cmd.batch
-        [ load
-        , Task.perform Navigate (Task.succeed ToIndex)
-        ]
-    )
+    ( initialModel, Cmd.batch [ load, Task.perform Tick Time.now ] )
 
 
 main : Program Never Model Message
@@ -299,5 +288,5 @@ main =
         { init = init
         , view = view
         , update = update
-        , subscriptions = (\_ -> Sub.none)
+        , subscriptions = (\_ -> Time.every Time.second Tick)
         }
