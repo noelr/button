@@ -1,6 +1,6 @@
 module Main exposing (main)
 
-import Html exposing (Html, div, h1, h2, input, span, text, ul, li, program)
+import Html exposing (Html, div, h1, h2, input, p, span, text, ul, li, program)
 import Html.Events exposing (onClick, onInput)
 import Html.Attributes exposing (class, value)
 import Http
@@ -58,11 +58,11 @@ view model =
                         (\button ->
                             div []
                                 [ Html.button [ onClick Index, class "button" ] [ text "Back" ]
-                                , h1 [ ] [ text button.text ]
+                                , h1 [] [ text button.text ]
                                 , h2 [] [ text button.group ]
-                                , span [ ] [ text "Name" ]
+                                , span [] [ text "Name" ]
                                 , input [ value button.text, class "input", onInput (RenameButton button.id) ] []
-                                , span [ ] [ text "Group" ]
+                                , span [] [ text "Group" ]
                                 , input [ value button.group, class "input", onInput (ChangeButtonGroup button.id) ] []
                                 , ul [] <| List.map (\click -> li [] [ text (toString (Date.fromTime click)) ]) button.clicks
                                 ]
@@ -70,18 +70,33 @@ view model =
                         groups
 
         Nothing ->
-            div [ class "container" ]
-                [ div [ class "field is-grouped is-grouped-multiline" ] <| List.map viewButton model.buttons
+            div []
+                [ div [ class "tile is-anchor" ] <| List.map viewButton model.buttons
                 , Html.button [ onClick AddButton, class "button" ] [ text "New Button" ]
                 ]
 
 
 viewButton : Button -> Html Message
 viewButton button =
-    div [ class "control buttons has-addons" ]
-        [ Html.button [ onClick (Click button.id), class "button" ] [ text (button.text ++ " (" ++ toString (List.length button.clicks) ++ ")") ]
-        , Html.button [ onClick (Focus button.id), class "button is-danger" ] [ text "…" ]
+    div [ class "tile is-parent" ]
+        [ div [ class "tile is-child box" ]
+            [ p [ class "title" ] [ text button.text ]
+            , p [ class "subtitle" ] [ text (lastClick button) ]
+            , div [ class "control buttons has-addons" ]
+                [ Html.button [ onClick (Click button.id), class "button" ] [ text (button.text ++ " (" ++ toString (List.length button.clicks) ++ ")") ]
+                , Html.button [ onClick (Focus button.id), class "button is-danger" ] [ text "…" ]
+                ]
+            ]
         ]
+
+
+lastClick : Button -> String
+lastClick button =
+  let lastClick = List.head button.clicks
+  in
+      case lastClick of
+        Nothing -> ""
+        Just click -> (toString (Date.fromTime click))
 
 
 updateButton : Id -> (Button -> Button) -> Button -> Button
