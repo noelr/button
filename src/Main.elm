@@ -51,9 +51,6 @@ view model =
             let
                 buttons =
                     List.filter (\b -> b.id == id) model.buttons
-
-                groups =
-                    List.filter (\b -> List.member b.group (List.map (\bg -> bg.group) buttons)) model.buttons
             in
                 div [ class "container content" ] <|
                     List.map
@@ -69,7 +66,7 @@ view model =
                                 , ul [] <| List.map (\click -> li [] [ text (toString (Date.fromTime click)) ]) button.clicks
                                 ]
                         )
-                        groups
+                        buttons
 
         Nothing ->
             div [ class "container" ]
@@ -83,6 +80,7 @@ viewButton now button =
     div [ class "column is-4" ]
         [ div [ class "box" ]
             [ p [ class "title" ] [ text button.text ]
+            , p [ class "subtitle" ] [ text button.group ]
             , p [ class "subtitle" ] [ text (lastClick button) ]
             , p [ class "subtitle" ] [ text (lastClickDiff now button) ]
             , div [ class "control buttons has-addons" ]
@@ -196,7 +194,7 @@ update msg model =
             ( model, Cmd.none )
 
         Tick time ->
-          ( { model | now = time }, Cmd.none )
+            ( { model | now = time }, Cmd.none )
 
 
 renameButton : Model -> Id -> String -> Model
