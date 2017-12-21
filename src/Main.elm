@@ -125,6 +125,9 @@ lastClickDiff now button =
 
         msPerWeek =
             7 * msPerDay
+
+        msPerMonth =
+            4 * msPerWeek
     in
         case lastClick of
             Nothing ->
@@ -137,11 +140,11 @@ lastClickDiff now button =
                 in
                     if diff < msPerMinute then
                         "Vor " ++ (toString <| ceiling <| diff / msPerSecond) ++ " Sekunden"
-                    else if diff < msPerHour then
-                        "Vor " ++ (toString <| floor <| diff / msPerMinute) ++ " Minuten"
                     else if diff < msPerDay then
-                        "Vor " ++ (toString <| floor <| diff / msPerHour) ++ " Stunden"
+                        "Vor " ++ (toString <| floor <| diff / msPerMinute) ++ " Minuten"
                     else if diff < msPerWeek then
+                        "Vor " ++ (toString <| floor <| diff / msPerHour) ++ " Stunden"
+                    else if diff < msPerMonth then
                         "Vor " ++ (toString <| floor <| diff / msPerDay) ++ " Tagen"
                     else
                         "Vor " ++ (toString <| floor <| diff / msPerWeek) ++ " Wochen"
