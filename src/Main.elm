@@ -107,47 +107,38 @@ lastClick button =
 
 lastClickDiff : Time -> Button -> String
 lastClickDiff now button =
-    let
-        lastClick =
-            List.head button.clicks
+    case (List.head button.clicks) of
+        Nothing ->
+            ""
 
-        msPerSecond =
-            Time.second
+        Just click ->
+            let
+                diff =
+                    now - click
 
-        msPerMinute =
-            Time.minute
+                date =
+                    Date.fromTime diff
 
-        msPerHour =
-            Time.hour
+                days =
+                    Date.day date - 1
 
-        msPerDay =
-            24 * msPerHour
+                hours =
+                    Date.hour date - 1
 
-        msPerWeek =
-            7 * msPerDay
+                minutes =
+                    Date.minute date
 
-        msPerMonth =
-            4 * msPerWeek
-    in
-        case lastClick of
-            Nothing ->
-                ""
-
-            Just click ->
-                let
-                    diff =
-                        now - click
-                in
-                    if diff < msPerMinute then
-                        "Vor " ++ (toString <| ceiling <| diff / msPerSecond) ++ " Sekunden"
-                    else if diff < msPerDay then
-                        "Vor " ++ (toString <| floor <| diff / msPerMinute) ++ " Minuten"
-                    else if diff < msPerWeek then
-                        "Vor " ++ (toString <| floor <| diff / msPerHour) ++ " Stunden"
-                    else if diff < msPerMonth then
-                        "Vor " ++ (toString <| floor <| diff / msPerDay) ++ " Tagen"
-                    else
-                        "Vor " ++ (toString <| floor <| diff / msPerWeek) ++ " Wochen"
+                seconds =
+                    Date.second date
+            in
+                if days > 0 then
+                    "Vor " ++ toString days ++ " Tagen, " ++ toString hours ++ " Stunden"
+                else if hours > 0 then
+                    "Vor " ++ toString hours ++ " Stunden, " ++ toString minutes ++ " Minute"
+                else if minutes > 0 then
+                    "Vor " ++ toString minutes ++ " Minuten, " ++ toString seconds ++ " Sekunden"
+                else
+                    "Vor " ++ toString seconds ++ " Sekunden"
 
 
 updateButton : Id -> (Button -> Button) -> Button -> Button
